@@ -1,0 +1,157 @@
+﻿@using System.Security.Claims
+@using System.Collections.Generic
+@using System.Text.Json
+
+@model Entidades.Conversacion
+
+@{
+    ViewData["Title"] = "Chat";
+
+    var usuarioLogueado = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    var coloresUsuario = new Dictionary<string, string>();
+    var paleta = new[] { "#6f42c1", "#fd7e14", "#20c997", "#dc3545", "#0dcaf0", "#198754", "#d63384", "#0d6efd", "#6610f2", "#e83e8c" };
+    var idxColor = 0;
+    foreach (var m in Model.Mensajes.OrderBy(m => m.FechaEnvio))
+    {
+        var key = m.UsuarioId.ToString();
+        if (m.UsuarioId != usuarioLogueado && !coloresUsuario.ContainsKey(key))
+        {
+            coloresUsuario[key] = paleta[idxColor % paleta.Length];
+            idxColor++;
+        }
+    }
+    var coloresJson = JsonSerializer.Serialize(coloresUsuario);
+}
+
+<section class="container py-3">
+    <div class="card shadow">
+        <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                <div>
+                    <strong class="d-block lh-sm">@Model.Publicacion.Titulo</strong>
+                    <small class="text-muted">
+                        @if (Model.VendedorId == usuarioLogueado)
+                        {
+                            <span>Conversación con @Model.Comprador?.Nombre @Model.Comprador?.Apellido (comprador)</span>
+                        }
+                        else
+                        {
+                            <span>Conversación con @Model.Vendedor?.Nombre @Model.Vendedor?.Apellido (vendedor)</span>
+                        }
+                    </small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                @if (Model.Cerrada)
+                {
+                    <span class="badge bg-secondary">Cerrada</span>
+                }
+                @if (Model.VendedorId == usuarioLogueado && !Model.Cerrada)
+                {
+                    <form asp-action="Cerrar" method="post" onsubmit="return confirm('¿Cerrar esta conversación?');">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-lock"></i> Cerrar
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <div class="card-body" id="chatMessages" style="height:60vh;overflow-y:auto;"
+             data-conversacion-id="@Model.Id"
+             data-usuario-logado="@usuarioLogueado"
+             data-colores="@Html.Raw(coloresJson)">
+
+            @foreach (var mensaje in Model.Mensajes.OrderBy(m => m.FechaEnvio))
+            {
+                var esImagen = mensaje.ArchivoUrl != null && (mensaje.ArchivoUrl.EndsWith(".jpg") || mensaje.ArchivoUrl.EndsWith(".jpeg") || mensaje.ArchivoUrl.EndsWith(".png") || mensaje.ArchivoUrl.EndsWith(".gif") || mensaje.ArchivoUrl.EndsWith(".webp"));
+                var esVideo = mensaje.ArchivoUrl != null && (mensaje.ArchivoUrl.EndsWith(".mp4") || mensaje.ArchivoUrl.EndsWith(".webm") || mensaje.ArchivoUrl.EndsWith(".mov"));
+                if (mensaje.UsuarioId == usuarioLogueado)
+                {
+                    <div class="d-flex justify-content-end mb-2 mensaje-item" data-usuario="@mensaje.UsuarioId" data-conversacion="@mensaje.ConversacionId">
+                        <div class="bg-primary text-white rounded-3 py-2 px-3" style="max-width:75%;">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                                <small class="fw-bold opacity-75">Vos</small>
+                            </div>
+                            @if (!string.IsNullOrEmpty(mensaje.Texto))
+                            {
+                                <div class="mb-1">@mensaje.Texto</div>
+                            }
+                            @if (esImagen)
+                            {
+                                <img src="@mensaje.ArchivoUrl" class="img-fluid rounded mt-1" style="max-height:300px;" />
+                            }
+                            @if (esVideo)
+                            {
+                                <video src="@mensaje.ArchivoUrl" class="w-100 rounded mt-1" controls style="max-height:300px;"></video>
+                            }
+                            <div class="text-end"><small class="opacity-50">@mensaje.FechaEnvio.ToString("HH:mm")</small></div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    var color = coloresUsuario.GetValueOrDefault(mensaje.UsuarioId.ToString(), "#6c757d");
+                    <div class="d-flex justify-content-start mb-2 mensaje-item" data-usuario="@mensaje.UsuarioId" data-conversacion="@mensaje.ConversacionId">
+                        <div class="rounded-3 py-2 px-3 text-white" style="max-width:75%;background-color:@color;">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                                <small class="fw-bold opacity-75">@mensaje.Usuario.Nombre</small>
+                            </div>
+                            @if (!string.IsNullOrEmpty(mensaje.Texto))
+                            {
+                                <div class="mb-1">@mensaje.Texto</div>
+                            }
+                            @if (esImagen)
+                            {
+                                <img src="@mensaje.ArchivoUrl" class="img-fluid rounded mt-1" style="max-height:300px;" />
+                            }
+                            @if (esVideo)
+                            {
+                                <video src="@mensaje.ArchivoUrl" class="w-100 rounded mt-1" controls style="max-height:300px;"></video>
+                            }
+                            <div class="text-end"><small class="opacity-50">@mensaje.FechaEnvio.ToString("HH:mm")</small></div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="card-footer">
+            @if (Model.Cerrada)
+            {
+                <p class="text-muted text-center mb-0 py-2">
+                    <i class="bi bi-lock"></i> Esta conversación está cerrada.
+                </p>
+            }
+            else
+            {
+                <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center gap-1 mb-1">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnEmoji" title="Emoji">
+                            <i class="bi bi-emoji-smile"></i>
+                        </button>
+                        <label class="btn btn-outline-secondary btn-sm mb-0" title="Adjuntar archivo">
+                            <i class="bi bi-paperclip"></i>
+                            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov" style="display:none;" />
+                        </label>
+                    </div>
+                    <div id="emojiPicker" class="border rounded p-2 mb-1 bg-white" style="display:none;max-height:160px;overflow-y:auto;font-size:1.4rem;line-height:1.8;">
+                        <span class="emoji-btn" style="cursor:pointer;">😊</span><span class="emoji-btn" style="cursor:pointer;">😂</span><span class="emoji-btn" style="cursor:pointer;">❤️</span><span class="emoji-btn" style="cursor:pointer;">👍</span><span class="emoji-btn" style="cursor:pointer;">🎉</span><span class="emoji-btn" style="cursor:pointer;">🔥</span><span class="emoji-btn" style="cursor:pointer;">😍</span><span class="emoji-btn" style="cursor:pointer;">🤣</span><span class="emoji-btn" style="cursor:pointer;">😎</span><span class="emoji-btn" style="cursor:pointer;">🙌</span><span class="emoji-btn" style="cursor:pointer;">💪</span><span class="emoji-btn" style="cursor:pointer;">😢</span><span class="emoji-btn" style="cursor:pointer;">😡</span><span class="emoji-btn" style="cursor:pointer;">🥺</span><span class="emoji-btn" style="cursor:pointer;">🤔</span><span class="emoji-btn" style="cursor:pointer;">👀</span><span class="emoji-btn" style="cursor:pointer;">✨</span><span class="emoji-btn" style="cursor:pointer;">💯</span><span class="emoji-btn" style="cursor:pointer;">🎶</span><span class="emoji-btn" style="cursor:pointer;">💀</span><span class="emoji-btn" style="cursor:pointer;">✅</span><span class="emoji-btn" style="cursor:pointer;">❌</span><span class="emoji-btn" style="cursor:pointer;">⭐</span><span class="emoji-btn" style="cursor:pointer;">🌈</span><span class="emoji-btn" style="cursor:pointer;">🎸</span><span class="emoji-btn" style="cursor:pointer;">🎵</span><span class="emoji-btn" style="cursor:pointer;">📷</span><span class="emoji-btn" style="cursor:pointer;">💡</span><span class="emoji-btn" style="cursor:pointer;">📦</span><span class="emoji-btn" style="cursor:pointer;">💰</span>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Escribí un mensaje..." maxlength="1000" autocomplete="off" />
+                        <button class="btn btn-primary" id="btnEnviarChat">
+                            <i class="bi bi-send"></i> Enviar
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}

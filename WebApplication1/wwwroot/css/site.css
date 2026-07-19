@@ -1,0 +1,44 @@
+/* Hero section */
+.hero-section {
+    position: relative;
+    min-height: 90vh;
+    background-image: linear-gradient(rgba(13, 17, 23, 0.65), rgba(13, 17, 23, 0.65)), url('/img/hero-background.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+}
+
+.hero-section .container {
+    z-index: 2;
+}
+
+/* Footer siempre al fondo gracias a flexbox en body (ver _Layout.cshtml) */
+body {
+    background-color: #f5f7fa;
+}
+
+.card {
+    border: none;
+}
+
+.navbar-brand i {
+    margin-right: 4px;
+}
+
+/* Ultimas publicaciones */
+.card {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.15) !important;
+    }
+
+.card-img-top {
+    object-fit: cover;
+}

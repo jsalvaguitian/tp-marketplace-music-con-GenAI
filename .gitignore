@@ -1,0 +1,93 @@
+## .NET / Visual Studio - ignorar todo lo generado automáticamente
+
+# Carpeta de configuración interna de Visual Studio
+.vs/
+
+# Carpetas de compilación de TODOS los proyectos
+[Bb]in/
+[Oo]bj/
+
+# Archivos de usuario (configuración local, no se comparte)
+*.user
+*.suo
+
+# Connection strings locales de cada integrante (NO subir, tienen contraseñas)
+appsettings.Development.json
+appsettings.*.Local.json
+
+# Logs
+*.log
+# =========================
+# Build
+# =========================
+bin/
+obj/
+
+# =========================
+# Visual Studio / VS Code
+# =========================
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Rider / JetBrains
+# =========================
+.idea/
+
+
+# =========================
+# ASP.NET Core
+# =========================
+appsettings.Development.json
+wwwroot/lib/
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+packages/
+.nuget/
+
+# =========================
+# Publish
+# =========================
+publish/
+out/
+
+# =========================
+# Temp files
+# =========================
+tmp/
+temp/
+
+# =========================
+# Secrets
+# =========================
+secrets.json
+
+# =========================
+# Node
+# =========================
+node_modules/
+
+# =========================
+# Coverage / Testing
+# =========================
+TestResults/
+coverage/
+
+# =========================
+# SQL Server LocalDB
+# =========================
+*.mdf
+*.ldf
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db

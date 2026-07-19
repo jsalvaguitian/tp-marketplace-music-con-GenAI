@@ -1,0 +1,162 @@
+﻿@model WebApplication1.Models.ViewModels.PerfilUsuarioViewModel
+
+
+@{
+    ViewData["Title"] = Model.esPerfilPropio ? "Mi Perfil" : $"Perfil de {Model.Usuario.Nombre}";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <!-- Columna de Datos de Usuario (Tarjeta Lateral) -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 card-body-profile">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <!-- Icono de usuario grande -->
+                        <i class="bi bi-person-circle text-secondary" style="font-size: 6rem;"></i>
+                    </div>
+                    <h3 class="fw-bold">@Model.Usuario.Nombre @Model.Usuario.Apellido</h3>
+                    <p class="text-muted">
+                        <i class="bi bi-geo-alt-fill text-danger"></i> @(Model.Usuario.Provincia?.Nombre ?? "Provincia no definida")
+                    </p>
+
+                    <hr />
+
+                    <div class="text-start px-2">
+                        <p class="mb-2">
+                            <strong><i class="bi bi-envelope text-primary"></i> Email:</strong> <br />
+                            @Model.Usuario.Email
+                        </p>
+
+                        @if (!string.IsNullOrEmpty(Model.Usuario.Telefono))
+                        {
+                            <p class="mb-2">
+                                <strong><i class="bi bi-telephone text-success"></i> Teléfono:</strong> <br />
+                                @Model.Usuario.Telefono
+                            </p>
+                        }
+
+                        @* Solo mostramos el DNI si es el perfil del propio usuario logueado *@
+                        @if (Model.esPerfilPropio)
+                        {
+                            <p class="mb-2">
+                                <strong><i class="bi bi-card-text text-warning"></i> DNI (Privado):</strong> <br />
+                                @Model.Usuario.Dni
+                            </p>
+
+                            <div class="d-grid mt-4">
+                                <a asp-controller="Publicacion" asp-action="Crear" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Crear Nueva Publicación
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna de Publicaciones -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h4 class="fw-bold mb-0 text-dark">Instrumentos Publicados</h4>
+                </div>
+                <div class="card-body px-4">
+
+                    <!-- Pestañas de Bootstrap -->
+                    <ul class="nav nav-tabs mb-4" id="perfilTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-semibold" id="activas-tab" data-bs-toggle="tab" data-bs-target="#activas" type="button" role="tab">
+                                Activas (@Model.PublicacionesActivas.Count)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold" id="finalizadas-tab" data-bs-toggle="tab" data-bs-target="#finalizadas" type="button" role="tab">
+                                Cerradas/Canjeadas (@Model.PublicacionesFinalizadas.Count)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="perfilTabsContent">
+
+                        <!-- Pestaña de Publicaciones Activas -->
+                        <div class="tab-pane fade show active" id="activas" role="tabpanel">
+                            @if (Model.PublicacionesActivas.Any())
+                            {
+                                <div class="row row-cols-1 row-cols-md-2 g-3">
+                                    @foreach (var pub in Model.PublicacionesActivas)
+                                    {
+                                        <div class="col">
+                                            <div class="card h-100 border-light shadow-sm">
+                                                <img src="@pub.ImagenUrl" class="card-img-top" alt="@pub.Titulo" style="height: 180px; object-fit: cover;">
+                                                <div class="card-body d-flex flex-column">
+                                                    <span class="badge bg-secondary mb-2 align-self-start">@pub.Categoria</span>
+                                                    <h5 class="card-title fw-bold text-truncate">@pub.Titulo</h5>
+                                                    <p class="card-text text-muted text-truncate small flex-grow-1">@pub.Descripcion</p>
+                                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                                        <small class="text-muted"><i class="bi bi-calendar"></i> Hasta: @pub.FechaCierre.ToString("dd/MM/yyyy")</small>
+                                                        <a asp-controller="Publicacion" asp-action="Detalle" asp-route-id="@pub.Id" class="btn btn-sm btn-outline-primary">
+                                                            Ver Detalle
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-music-note-list text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-3">No hay publicaciones activas en este momento.</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Pestaña de Publicaciones Finalizadas -->
+                        <div class="tab-pane fade" id="finalizadas" role="tabpanel">
+                            @if (Model.PublicacionesFinalizadas.Any())
+                            {
+                                <div class="row row-cols-1 row-cols-md-2 g-3">
+                                    @foreach (var pub in Model.PublicacionesFinalizadas)
+                                    {
+                                        <div class="col">
+                                            <div class="card h-100 border-light bg-light shadow-sm">
+                                                <img src="@pub.ImagenUrl" class="card-img-top img-grayscale" alt="@pub.Titulo" style="height: 180px; object-fit: cover; opacity: 0.6;">
+                                                <div class="card-body d-flex flex-column">
+                                                    <span class="badge bg-dark mb-2 align-self-start text-white">Finalizada</span>
+                                                    <h5 class="card-title fw-bold text-truncate text-muted">@pub.Titulo</h5>
+                                                    <p class="card-text text-muted text-truncate small flex-grow-1">@pub.Descripcion</p>
+                                                    <div class="d-flex justify-content-end mt-3">
+                                                        <a asp-controller="Publicacion" asp-action="Detalle" asp-route-id="@pub.Id" class="btn btn-sm btn-outline-secondary">
+                                                            Ver Detalle
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-archive text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-3">No hay publicaciones finalizadas o cerradas.</p>
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .img-grayscale {
+        filter: grayscale(100%);
+    }
+</style>

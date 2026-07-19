@@ -1,0 +1,103 @@
+﻿@model IEnumerable<Entidades.Conversacion>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Mis conversaciones";
+    var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+}
+
+<section class="hero-section text-white text-center d-flex align-items-center justify-content-center">
+    <div class="hero-overlay"></div>
+
+    <div class="container position-relative py-5">
+        <i class="bi bi-chat-dots display-1 mb-3"></i>
+
+        <h1 class="display-4 fw-bold">
+            Mis conversaciones
+        </h1>
+
+        <p class="lead col-lg-8 mx-auto">
+            Contactate con compradores y vendedores para coordinar tu intercambio de forma segura.
+        </p>
+    </div>
+</section>
+
+<section class="container py-5">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-white">
+            <h4 class="mb-0">
+                <i class="bi bi-chat-left-text"></i>
+                Conversaciones
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-chat-square-text display-3 text-secondary"></i>
+
+                    <h5 class="mt-3">
+                        Todavía no tenés conversaciones.
+                    </h5>
+
+                </div>
+            }
+            else
+            {
+                <div class="list-group">
+
+                    @foreach (var conversacion in Model)
+                    {
+                        <a asp-action="Conversacion"
+                               asp-route-id="@conversacion.Id"
+                               class="list-group-item list-group-item-action">
+
+                            <div class="d-flex justify-content-between">
+
+                                <div>
+
+                                    <h5 class="mb-1">
+                                        @conversacion.Publicacion.Titulo
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        @if (conversacion.VendedorId == usuarioId)
+                                        {
+                                            <span>Con <strong>@conversacion.Comprador?.Nombre @conversacion.Comprador?.Apellido</strong> (comprador)</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Con <strong>@conversacion.Vendedor?.Nombre @conversacion.Vendedor?.Apellido</strong> (vendedor)</span>
+                                        }
+                                    </small>
+
+                                </div>
+
+                                <div>
+
+                                    <button class="btn btn-primary">
+
+                                        Abrir chat
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </a>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</section>
