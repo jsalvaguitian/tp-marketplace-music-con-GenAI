@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Servicios;
 using WebApplication1.Hubs;
+using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,9 @@ builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<IPublicacionService, PublicacionService>();
 builder.Services.AddScoped<IConversacionService, ConversacionService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+builder.Services.AddScoped<IIAService, IAService>();
+builder.Services.AddHttpClient();
 
 // Autenticación basada en cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

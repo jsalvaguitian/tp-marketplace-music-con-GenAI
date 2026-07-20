@@ -10,7 +10,7 @@ public class MusicTradeDbContextFactory : IDesignTimeDbContextFactory<MusicTrade
         var optionsBuilder = new DbContextOptionsBuilder<MusicTradeDbContext>();
 
         optionsBuilder.UseSqlServer(
-            "Server=localhost\\SQLEXPRESS;Database=MusicTradeDB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true" );
+            "Server=localhost,1433;Database=MusicTradeDB;User Id=sa;Password=Password123!;TrustServerCertificate=True;" );
 
         return new MusicTradeDbContext(optionsBuilder.Options);
     }

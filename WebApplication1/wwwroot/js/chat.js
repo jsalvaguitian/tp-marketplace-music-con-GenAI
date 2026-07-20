@@ -14,7 +14,7 @@
         try {
             coloresConocidos = JSON.parse(coloresInit);
             colorIdx = Object.keys(coloresConocidos).length;
-        } catch (e) {}
+        } catch (e) { }
     }
 
     function colorParaUsuario(usuarioId) {
@@ -73,15 +73,22 @@
                 + '<div class="text-end"><small class="opacity-50">' + hora + "</small></div></div>";
         } else {
             var color = colorParaUsuario(msg.usuarioId);
-            div.innerHTML = '<div class="rounded-3 py-2 px-3 text-white" style="max-width:75%;background-color:' + color + ';">'
+            div.innerHTML =
+                '<div class="rounded-3 py-2 px-3 text-white" style="max-width:75%;background-color:' + color + ';">'
                 + '<div class="d-flex justify-content-between align-items-center gap-2 mb-1">'
-                + '<small class="fw-bold opacity-75">' + escapeHtml(msg.usuarioNombre) + "</small></div>"
+                + '<small class="fw-bold opacity-75">' + escapeHtml(msg.usuarioNombre) + '</small></div>'
                 + textoHtml
                 + archivoHtml
+                + '<button class="btn btn-sm btn-outline-light mt-2 btn-analizar" data-mensaje=\'' + msg.texto.replace(/'/g, "&#39;") + '\'>'
+                + '🛡 Analizar'
+                + '</button>'
+                + '<div class="resultado-analisis mt-2"></div>'
                 + '<div class="text-end"><small class="opacity-50">' + hora + "</small></div></div>";
         }
 
         contenedor.appendChild(div);
+
+
         contenedor.scrollTop = contenedor.scrollHeight;
     }
 
@@ -102,6 +109,10 @@
 
     var input = document.getElementById("chatInput");
     var btn = document.getElementById("btnEnviarChat");
+
+    var btnMejorar = document.getElementById("btnMejorarMensaje");
+    var btnAnalizar = document.getElementById("btnAnalizarMensaje");
+    var resultadoAnalisis = document.getElementById("resultadoAnalisis");
 
     var archivoSubidoUrl = null;
 
@@ -241,4 +252,120 @@
             xhr.send(form);
         });
     }
+
+    //funcionalidad de mejorar y analizar mensaje con IA
+
+    if (btnMejorar) {
+
+        btnMejorar.addEventListener("click", async function () {
+
+            var mensaje = input.value.trim();
+
+            if (!mensaje)
+                return;
+
+            try {
+
+                btnMejorar.disabled = true;
+
+                btnMejorar.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Mejorando...`;
+
+                const response = await fetch("/IA/MejorarMensaje", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        mensaje: mensaje
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error al mejorar mensaje");
+                }
+
+                const data = await response.json();
+
+                input.value = data.mensaje;
+
+            } catch (error) {
+
+                console.error(error);
+                alert("No se pudo mejorar el mensaje.");
+
+            } finally {
+
+                btnMejorar.disabled = false;
+                btnMejorar.innerHTML = "✨ Mejorar";
+            }
+        });
+    }
+
+    document.addEventListener("click", async function (e) {
+
+        if (!e.target.classList.contains("btn-analizar"))
+            return;
+
+        var boton = e.target;
+        var mensaje = boton.dataset.mensaje;
+        var resultado = boton.nextElementSibling;
+
+        boton.disabled = true;
+        boton.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Mejorando...`;
+
+        try {
+
+            const response = await fetch("/IA/AnalizarMensaje", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    mensaje: mensaje
+                })
+            });
+
+            const data = await response.json();
+
+            let clase = "alert-success";
+
+            if (data.riesgo === "MEDIO")
+                clase = "alert-warning";
+
+            if (data.riesgo === "ALTO")
+                clase = "alert-danger";
+
+
+            resultado.innerHTML =
+                `<div class="alert ${clase} alert-dismissible fade show mt-2 mb-0">
+                <button type="button" class="btn-close" aria-label="Cerrar"></button>
+                <strong>${data.riesgo}</strong><br/>
+                ${data.motivo}
+                </div>`;
+
+            var btnCerrar = resultado.querySelector(".btn-close");
+
+            btnCerrar.addEventListener("click", function () {
+                resultado.innerHTML = "";
+            });
+
+
+
+        } catch {
+
+            resultado.innerHTML =
+                `<div class="alert alert-secondary mt-2 mb-0">
+                No se pudo analizar el mensaje.
+            </div>`;
+
+        } finally {
+
+            boton.disabled = false;
+            boton.innerHTML = "🛡 Analizar";
+
+        }
+
+    });
+
+
 })();

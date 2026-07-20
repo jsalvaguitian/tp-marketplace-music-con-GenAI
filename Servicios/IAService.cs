@@ -31,10 +31,10 @@ public class IAService : IIAService
     public async Task<string> MejorarMensajeAsync(string mensaje)
     {
         string prompt = $"""
-            Reescribí el siguiente mensaje para que sea cordial,
-            profesional y breve.
-
-            No cambies la intención original.
+            Reescribí el siguiente mensaje para que sea cordial, profesional y breve. 
+            No cambies la intención original. 
+            Respondé solo con el texto mejorado. 
+            No agregues explicaciones, títulos ni comentarios.
 
             Mensaje:
             {mensaje}
@@ -46,14 +46,22 @@ public class IAService : IIAService
     public async Task<ResultadoAnalisis> AnalizarMensajeAsync(string mensaje)
     {
         string prompt = $@"
-        Analizá el siguiente mensaje.
+        Analizá el siguiente mensaje de un chat privado entre un comprador y un vendedor de un marketplace.
+        Clasificá el riesgo utilizando únicamente uno de estos valores:
+        - BAJO:
+        El mensaje corresponde a una conversación normal sobre el producto, precio, estado, entrega o permuta.
 
-        Detectá posibles fraudes, estafas, phishing o solicitud de datos personales.
+        - MEDIO:
+        El mensaje solicita información personal (teléfono, email, dirección, CBU, alias, DNI), intenta sacar la conversación fuera de la plataforma o pide compartir datos que podrían afectar la privacidad.
 
-        El campo riesgo DEBE ser únicamente uno de estos valores:
-        - BAJO
-        - MEDIO
-        - ALTO
+        - ALTO:
+        El mensaje presenta posibles señales de fraude o phishing, por ejemplo:
+        - solicita contraseñas o códigos de verificación;
+        - solicita datos completos de tarjetas bancarias;
+        - envía enlaces sospechosos;
+        - intenta suplantar a una empresa o banco;
+        - presiona para realizar pagos inseguros o verificar cuentas fuera del marketplace;
+        - intenta engañar al usuario para obtener dinero o información sensible.
 
         Respondé únicamente en formato JSON:
 
@@ -62,11 +70,14 @@ public class IAService : IIAService
             ""motivo"": """"
         }}
 
+        No agregues texto fuera del JSON.
+
         Mensaje:
         {mensaje}";
 
         string respuesta = await EnviarPromptAsync(prompt);
 
+        Console.WriteLine(respuesta);
         try
         {
             using var doc = JsonDocument.Parse(respuesta);
@@ -80,13 +91,13 @@ public class IAService : IIAService
                 .GetString() ?? string.Empty;
 
 
-           NivelRiesgo riesgo = riesgoTexto.ToUpper() switch
-{
-    "ALTO" => NivelRiesgo.Alto,
-    "MEDIO" => NivelRiesgo.Medio,
-    "BAJO" => NivelRiesgo.Bajo,
-    _ => NivelRiesgo.Desconocido
-};
+            NivelRiesgo riesgo = riesgoTexto.ToUpper() switch
+            {
+                "ALTO" => NivelRiesgo.Alto,
+                "MEDIO" => NivelRiesgo.Medio,
+                "BAJO" => NivelRiesgo.Bajo,
+                _ => NivelRiesgo.Desconocido
+            };
             return new ResultadoAnalisis
             {
                 Riesgo = riesgo,
@@ -103,7 +114,6 @@ public class IAService : IIAService
         }
     }
 
-
     private async Task<string> EnviarPromptAsync(string prompt)
     {
         string apiKey = configuration["Gemini:ApiKey"]!;
@@ -112,27 +122,33 @@ public class IAService : IIAService
         {
             contents = new[]
             {
-                new
+            new
+            {
+                parts = new[]
                 {
-                    parts = new[]
+                    new
                     {
-                        new
-                        {
-                            text = prompt
-                        }
+                        text = prompt
                     }
                 }
             }
+        }
         };
 
         var json = JsonSerializer.Serialize(request);
 
-        var response = await httpClient.PostAsync(
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}",
-            new StringContent(
-                json,
-                Encoding.UTF8,
-                "application/json"));
+        var httpRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent");
+
+        httpRequest.Headers.Add("x-goog-api-key", apiKey);
+
+        httpRequest.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await httpClient.SendAsync(httpRequest);
 
         response.EnsureSuccessStatusCode();
 
