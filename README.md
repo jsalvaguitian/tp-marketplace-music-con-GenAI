@@ -1,8 +1,7 @@
 # 🎵 Marketplace con Chat Inteligente e IA
 
-![Vista del chat](docs/chat-ia.png)
 
-## 📋 Descripción
+## Descripción
 
 Este repositorio corresponde a la evolución de un **proyecto académico desarrollado inicialmente en equipo**, en el que se desarrolló un marketplace con chat en tiempo real utilizando **ASP.NET Core MVC**, **Entity Framework Core**, **SQL Server** y **SignalR**.
 
@@ -10,7 +9,7 @@ Como extensión personal del proyecto original, incorporé nuevas funcionalidade
 
 ---
 
-## 👥 Sobre el proyecto
+## Sobre el proyecto
 
 El marketplace base fue desarrollado como **trabajo práctico en equipo**.
 
@@ -26,7 +25,7 @@ Las funcionalidades relacionadas con Inteligencia Artificial presentes en este r
 
 ---
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
 ### Marketplace
 
@@ -64,7 +63,7 @@ El resultado clasifica el mensaje como:
 
 ---
 
-## 🛠 Tecnologías
+## Tecnologías
 
 - ASP.NET Core MVC
 - C#
@@ -79,7 +78,7 @@ El resultado clasifica el mensaje como:
 
 ---
 
-## ⚙️ Configuración del proyecto
+## Configuración del proyecto
 
 ### 1. Clonar el repositorio
 
